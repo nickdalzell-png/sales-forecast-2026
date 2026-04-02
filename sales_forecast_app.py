@@ -35,21 +35,27 @@ pacing = pd.DataFrame({
 })
 
 # =============================================
-# WHAT-IF FORECAST (sidebar)
+# WHAT-IF FORECAST - ALL 4 QUARTERS
 # =============================================
-st.sidebar.header("🔮 What-If Forecast")
-q3_pct = st.sidebar.slider("Q3 % of Goal", 0, 150, 51, step=1)
-q4_pct = st.sidebar.slider("Q4 % of Goal", 0, 150, 24, step=1)
+st.sidebar.header("🔮 What-If Forecast (All 4 Quarters)")
 
-first_half = 2500646 + 2115072
-q3_proj = 2777500 * (q3_pct / 100)
-q4_proj = 3010000 * (q4_pct / 100)
-projected_total = first_half + q3_proj + q4_proj
+q1_pct = st.sidebar.slider("Q1 % of Goal", 0, 200, int(2500646 / 2105000 * 100), step=1)
+q2_pct = st.sidebar.slider("Q2 % of Goal", 0, 200, int(2115072 / 2912500 * 100), step=1)
+q3_pct = st.sidebar.slider("Q3 % of Goal", 0, 200, 51, step=1)
+q4_pct = st.sidebar.slider("Q4 % of Goal", 0, 200, 24, step=1)
+
+# Calculate projected values
+q1_proj = quarterly["2026 Goal"][0] * (q1_pct / 100)
+q2_proj = quarterly["2026 Goal"][1] * (q2_pct / 100)
+q3_proj = quarterly["2026 Goal"][2] * (q3_pct / 100)
+q4_proj = quarterly["2026 Goal"][3] * (q4_pct / 100)
+
+projected_total = q1_proj + q2_proj + q3_proj + q4_proj
 total_goal = 10805000
-pct_to_goal = projected_total / total_goal * 100
+pct_to_goal = (projected_total / total_goal) * 100
 
 # =============================================
-# SIDEBAR - LIVE DATA
+# SIDEBAR - LIVE DATA & FILTERS
 # =============================================
 st.sidebar.header("🔌 Live Data")
 uploaded_file = st.sidebar.file_uploader("Upload new 2026 sales.xlsx", type=["xlsx"])
@@ -71,9 +77,6 @@ if google_url:
     except:
         st.sidebar.warning("Link must be published as CSV")
 
-# =============================================
-# REGIONAL FILTERS
-# =============================================
 st.sidebar.header("🔎 Regional Filters")
 regions = st.sidebar.multiselect(
     "Choose regions",
@@ -113,8 +116,14 @@ with tab3:
     st.plotly_chart(fig_p, use_container_width=True)
 
 with tab4:
-    st.subheader("What-If Forecast Results")
-    st.metric("Projected Full-Year Revenue", f"${projected_total:,.0f}", f"{pct_to_goal:.1f}% to Goal")
+    st.subheader("What-If Forecast Results — All 4 Quarters")
+    col_a, col_b, col_c, col_d = st.columns(4)
+    with col_a: st.metric("Q1 Projected", f"${q1_proj:,.0f}", f"{q1_pct}% of goal")
+    with col_b: st.metric("Q2 Projected", f"${q2_proj:,.0f}", f"{q2_pct}% of goal")
+    with col_c: st.metric("Q3 Projected", f"${q3_proj:,.0f}", f"{q3_pct}% of goal")
+    with col_d: st.metric("Q4 Projected", f"${q4_proj:,.0f}", f"{q4_pct}% of goal")
+    
+    st.metric("**Projected Full-Year Revenue**", f"${projected_total:,.0f}", f"{pct_to_goal:.1f}% to Goal")
     if pct_to_goal >= 100:
         st.success("🎉 On track or ahead!")
     else:
@@ -139,12 +148,16 @@ with col2:
         pdf.set_font("Arial", "", 12)
         pdf.cell(0, 10, f"Generated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}", ln=1)
         pdf.cell(0, 10, f"Total Actual: ${6400097:,.0f} (59.2% to Goal)", ln=1)
-        pdf.cell(0, 10, f"Projected Revenue: ${projected_total:,.0f} ({pct_to_goal:.1f}%)", ln=1)
+        pdf.cell(0, 10, f"Projected Full Year: ${projected_total:,.0f} ({pct_to_goal:.1f}%)", ln=1)
+        pdf.cell(0, 10, "What-If Breakdown:", ln=1)
+        pdf.cell(0, 8, f"Q1: ${q1_proj:,.0f} ({q1_pct}%)", ln=1)
+        pdf.cell(0, 8, f"Q2: ${q2_proj:,.0f} ({q2_pct}%)", ln=1)
+        pdf.cell(0, 8, f"Q3: ${q3_proj:,.0f} ({q3_pct}%)", ln=1)
+        pdf.cell(0, 8, f"Q4: ${q4_proj:,.0f} ({q4_pct}%)", ln=1)
         pdf.cell(0, 10, "Monthly Pacing Summary:", ln=1)
         for _, row in pacing.iterrows():
             pdf.cell(0, 8, f"{row['Date']}: ${row['Cumulative $']:,.0f} ({row['% of Goal']}%)", ln=1)
         
-        # Cloud-safe PDF creation using BytesIO
         buffer = io.BytesIO()
         pdf.output(name=buffer, dest='F')
         buffer.seek(0)
@@ -157,4 +170,4 @@ with col3:
     st.download_button("📊 PowerPoint-ready CSV", csv, "for_powerpoint.csv", "text/csv")
     st.caption("Copy this CSV straight into PowerPoint or Excel slides")
 
-st.success("✅ App is now 100% working with all features! Refresh the page.")
+st.success("✅ All 4 quarters What-If widget is now live! Refresh the page.")
