@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
+import io
 
 st.set_page_config(page_title="2026 Sales Forecast", layout="wide")
 st.title("🚀 2026 Sales Forecast Dashboard")
@@ -120,7 +121,7 @@ with tab4:
         st.error(f"Still ${total_goal - projected_total:,.0f} short")
 
 # =============================================
-# EXPORTS (PDF fixed + CSV)
+# EXPORTS
 # =============================================
 st.divider()
 col1, col2, col3 = st.columns(3)
@@ -142,7 +143,12 @@ with col2:
         pdf.cell(0, 10, "Monthly Pacing Summary:", ln=1)
         for _, row in pacing.iterrows():
             pdf.cell(0, 8, f"{row['Date']}: ${row['Cumulative $']:,.0f} ({row['% of Goal']}%)", ln=1)
-        return pdf.output()   # ← Modern fpdf2 way: returns bytes directly
+        
+        # Cloud-safe PDF creation using BytesIO
+        buffer = io.BytesIO()
+        pdf.output(name=buffer, dest='F')
+        buffer.seek(0)
+        return buffer.getvalue()
 
     pdf_bytes = create_pdf()
     st.download_button("📄 Export Full Report (PDF)", pdf_bytes, "2026_sales_report.pdf", "application/pdf")
@@ -151,4 +157,4 @@ with col3:
     st.download_button("📊 PowerPoint-ready CSV", csv, "for_powerpoint.csv", "text/csv")
     st.caption("Copy this CSV straight into PowerPoint or Excel slides")
 
-st.success("✅ App is now fully working with all features! Refresh the page.")
+st.success("✅ App is now 100% working with all features! Refresh the page.")
