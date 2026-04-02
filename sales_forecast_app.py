@@ -1,10 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 from fpdf import FPDF
 from io import BytesIO
-import base64
 
 st.set_page_config(page_title="2026 Sales Forecast", layout="wide")
 st.title("🚀 2026 Sales Forecast Dashboard")
@@ -37,30 +35,48 @@ pacing = pd.DataFrame({
 })
 
 # =============================================
+# WHAT-IF FORECAST (always calculated)
+# =============================================
+st.sidebar.header("🔮 What-If Forecast")
+q3_pct = st.sidebar.slider("Q3 % of Goal", 0, 150, 51, step=1)
+q4_pct = st.sidebar.slider("Q4 % of Goal", 0, 150, 24, step=1)
+
+first_half = 2500646 + 2115072
+q3_proj = 2777500 * (q3_pct / 100)
+q4_proj = 3010000 * (q4_pct / 100)
+projected_total = first_half + q3_proj + q4_proj
+total_goal = 10805000
+pct_to_goal = projected_total / total_goal * 100
+
+# Create pacing chart once (for export)
+fig_p = px.line(pacing, x="Date", y="% of Goal", markers=True, title="Monthly Pacing Tracker")
+fig_p.add_bar(x=pacing["Date"], y=pacing["Cumulative $"]/10000, name="Cumulative $ (×10k)")
+
+# =============================================
 # SIDEBAR - LIVE DATA
 # =============================================
-st.sidebar.header("🔌 Live Data Connection")
+st.sidebar.header("🔌 Live Data")
 uploaded_file = st.sidebar.file_uploader("Upload new 2026 sales.xlsx", type=["xlsx"])
-google_url = st.sidebar.text_input("Or paste Google Sheets CSV link", placeholder="https://docs.google.com/.../pub?output=csv")
+google_url = st.sidebar.text_input("Google Sheets CSV link", placeholder="https://docs.google.com/.../pub?output=csv")
 
-if uploaded_file is not None:
+if uploaded_file:
     try:
         live_df = pd.read_excel(uploaded_file, sheet_name="25 vs 26", header=None)
-        st.sidebar.success("✅ Excel loaded successfully!")
+        st.sidebar.success("✅ Excel loaded!")
         with st.expander("Raw Excel preview"):
             st.dataframe(live_df.head(40))
     except:
-        st.sidebar.error("Could not read the sheet. Make sure it's named '25 vs 26'.")
+        st.sidebar.error("Could not read sheet '25 vs 26'")
 
 if google_url:
     try:
         pd.read_csv(google_url)
         st.sidebar.success("✅ Google Sheets connected!")
     except:
-        st.sidebar.warning("Link must be published as CSV.")
+        st.sidebar.warning("Link must be published as CSV")
 
 # =============================================
-# FILTERS
+# REGIONAL FILTERS
 # =============================================
 st.sidebar.header("🔎 Regional Filters")
 regions = st.sidebar.multiselect(
@@ -77,14 +93,10 @@ tab1, tab2, tab3, tab4 = st.tabs(["📊 Overview", "🌍 Regional Analysis", "�
 
 with tab1:
     col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric("2026 Actual", f"${6400097:,.0f}", "59.2% to Goal")
-    with col2:
-        st.metric("Shortfall", "-$4,404,903", "vs $10.8M goal")
-    with col3:
-        st.metric("1st Half", "91.9% to Goal", "Strong")
-    with col4:
-        st.metric("2nd Half", "30.8% to Goal", "Recovery needed")
+    with col1: st.metric("2026 Actual", f"${6400097:,.0f}", "59.2% to Goal")
+    with col2: st.metric("Shortfall", "-$4,404,903", "vs $10.8M goal")
+    with col3: st.metric("1st Half", "91.9% to Goal", "Strong")
+    with col4: st.metric("2nd Half", "30.8% to Goal", "Recovery needed")
 
     st.subheader("Quarterly Performance")
     fig_q = px.bar(quarterly, x="Quarter", y=["2026 Actual", "2026 Goal"], barmode="group")
@@ -98,67 +110,56 @@ with tab2:
     st.plotly_chart(fig_r, use_container_width=True)
 
 with tab3:
-    st.subheader("Monthly Pacing Tracker (Oct 2025 – Mar 2026)")
+    st.subheader("Monthly Pacing Tracker")
     st.dataframe(pacing.style.format({"Cumulative $": "${:,.0f}"}), use_container_width=True)
-    fig_p = px.line(pacing, x="Date", y="% of Goal", markers=True, title="Cumulative % of Goal")
-    fig_p.add_bar(x=pacing["Date"], y=pacing["Cumulative $"]/10000, name="Cumulative $ (×10k)")
     st.plotly_chart(fig_p, use_container_width=True)
 
 with tab4:
-    st.subheader("What-If Forecast Tool")
-    col_a, col_b = st.columns(2)
-    with col_a:
-        q3_pct = st.slider("Q3 % of Goal", 0, 150, 51, step=1)
-    with col_b:
-        q4_pct = st.slider("Q4 % of Goal", 0, 150, 24, step=1)
-
-    first_half = 2500646 + 2115072
-    q3_proj = 2777500 * (q3_pct / 100)
-    q4_proj = 3010000 * (q4_pct / 100)
-    projected_total = first_half + q3_proj + q4_proj
-    total_goal = 10805000
-    pct = projected_total / total_goal * 100
-
-    st.metric("Projected Full-Year Revenue", f"${projected_total:,.0f}", f"{pct:.1f}% to Goal")
-    if pct >= 100:
+    st.subheader("What-If Forecast Results")
+    st.metric("Projected Full-Year Revenue", f"${projected_total:,.0f}", f"{pct_to_goal:.1f}% to Goal")
+    if pct_to_goal >= 100:
         st.success("🎉 On track or ahead!")
     else:
         st.error(f"Still ${total_goal - projected_total:,.0f} short")
 
 # =============================================
-# EXPORTS
+# EXPORTS (now always work)
 # =============================================
 st.divider()
-col_exp1, col_exp2, col_exp3, col_exp4 = st.columns(4)
+col1, col2, col3, col4 = st.columns(4)
 
-with col_exp1:
+with col1:
     csv = filtered_regional.to_csv(index=False).encode()
     st.download_button("📥 Download Filtered Data (CSV)", csv, "regional_filtered.csv", "text/csv")
 
-with col_exp2:
+with col2:
     fig_p_bytes = BytesIO()
     fig_p.write_image(fig_p_bytes, format="png")
     fig_p_bytes.seek(0)
     st.download_button("📸 Download Pacing Chart (PNG)", fig_p_bytes.getvalue(), "pacing_chart.png", "image/png")
 
-with col_exp3:
+with col3:
     def create_pdf():
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font("Arial", "B", 16)
         pdf.cell(0, 10, "2026 Sales Forecast Report", ln=1)
         pdf.set_font("Arial", "", 12)
-        pdf.cell(0, 10, f"Generated: {pd.Timestamp.now().strftime('%Y-%m-%d')}", ln=1)
+        pdf.cell(0, 10, f"Generated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}", ln=1)
         pdf.cell(0, 10, f"Total Actual: ${6400097:,.0f} (59.2% to Goal)", ln=1)
-        pdf.cell(0, 10, f"Projected: ${projected_total:,.0f} ({pct:.1f}%)", ln=1)
+        pdf.cell(0, 10, f"Projected Revenue: ${projected_total:,.0f} ({pct_to_goal:.1f}%)", ln=1)
+        pdf.cell(0, 10, "Monthly Pacing Summary:", ln=1)
+        for _, row in pacing.iterrows():
+            pdf.cell(0, 8, f"{row['Date']}: ${row['Cumulative $']:,.0f} ({row['% of Goal']}%)", ln=1)
         pdf.output("/tmp/report.pdf", "F")
         with open("/tmp/report.pdf", "rb") as f:
             return f.read()
+
     pdf_bytes = create_pdf()
     st.download_button("📄 Export Full Report (PDF)", pdf_bytes, "2026_sales_report.pdf", "application/pdf")
 
-with col_exp4:
+with col4:
     st.download_button("📊 PowerPoint-ready CSV", csv, "for_powerpoint.csv", "text/csv")
-    st.caption("Paste this CSV into PowerPoint slides")
+    st.caption("Copy into PowerPoint or Excel")
 
-st.success("✅ App is fully functional!")
+st.success("✅ Everything is now working! Refresh your app page.")
