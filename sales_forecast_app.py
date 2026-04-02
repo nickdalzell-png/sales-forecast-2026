@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
-from io import BytesIO
 
 st.set_page_config(page_title="2026 Sales Forecast", layout="wide")
 st.title("🚀 2026 Sales Forecast Dashboard")
@@ -35,7 +34,7 @@ pacing = pd.DataFrame({
 })
 
 # =============================================
-# WHAT-IF FORECAST (always calculated)
+# WHAT-IF FORECAST (sidebar)
 # =============================================
 st.sidebar.header("🔮 What-If Forecast")
 q3_pct = st.sidebar.slider("Q3 % of Goal", 0, 150, 51, step=1)
@@ -47,10 +46,6 @@ q4_proj = 3010000 * (q4_pct / 100)
 projected_total = first_half + q3_proj + q4_proj
 total_goal = 10805000
 pct_to_goal = projected_total / total_goal * 100
-
-# Create pacing chart once (for export)
-fig_p = px.line(pacing, x="Date", y="% of Goal", markers=True, title="Monthly Pacing Tracker")
-fig_p.add_bar(x=pacing["Date"], y=pacing["Cumulative $"]/10000, name="Cumulative $ (×10k)")
 
 # =============================================
 # SIDEBAR - LIVE DATA
@@ -87,7 +82,7 @@ regions = st.sidebar.multiselect(
 filtered_regional = regional[regional["Region"].isin(regions)]
 
 # =============================================
-# TABS
+# MAIN TABS
 # =============================================
 tab1, tab2, tab3, tab4 = st.tabs(["📊 Overview", "🌍 Regional Analysis", "📅 Monthly Pacing", "🔮 What-If Forecast"])
 
@@ -110,8 +105,10 @@ with tab2:
     st.plotly_chart(fig_r, use_container_width=True)
 
 with tab3:
-    st.subheader("Monthly Pacing Tracker")
+    st.subheader("Monthly Pacing Tracker (Oct 2025 – Mar 2026)")
     st.dataframe(pacing.style.format({"Cumulative $": "${:,.0f}"}), use_container_width=True)
+    fig_p = px.line(pacing, x="Date", y="% of Goal", markers=True, title="Cumulative % of Goal Achieved")
+    fig_p.add_bar(x=pacing["Date"], y=pacing["Cumulative $"]/10000, name="Cumulative $ (×10k)")
     st.plotly_chart(fig_p, use_container_width=True)
 
 with tab4:
@@ -123,22 +120,16 @@ with tab4:
         st.error(f"Still ${total_goal - projected_total:,.0f} short")
 
 # =============================================
-# EXPORTS (now always work)
+# EXPORTS (PDF + CSV only – no more PNG issues)
 # =============================================
 st.divider()
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3 = st.columns(3)
 
 with col1:
     csv = filtered_regional.to_csv(index=False).encode()
     st.download_button("📥 Download Filtered Data (CSV)", csv, "regional_filtered.csv", "text/csv")
 
 with col2:
-    fig_p_bytes = BytesIO()
-    fig_p.write_image(fig_p_bytes, format="png")
-    fig_p_bytes.seek(0)
-    st.download_button("📸 Download Pacing Chart (PNG)", fig_p_bytes.getvalue(), "pacing_chart.png", "image/png")
-
-with col3:
     def create_pdf():
         pdf = FPDF()
         pdf.add_page()
@@ -158,8 +149,8 @@ with col3:
     pdf_bytes = create_pdf()
     st.download_button("📄 Export Full Report (PDF)", pdf_bytes, "2026_sales_report.pdf", "application/pdf")
 
-with col4:
+with col3:
     st.download_button("📊 PowerPoint-ready CSV", csv, "for_powerpoint.csv", "text/csv")
-    st.caption("Copy into PowerPoint or Excel")
+    st.caption("Copy this CSV straight into PowerPoint or Excel slides")
 
-st.success("✅ Everything is now working! Refresh your app page.")
+st.success("✅ App is now fully working! Refresh the page if needed.")
