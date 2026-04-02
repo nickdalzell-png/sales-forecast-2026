@@ -120,7 +120,7 @@ with tab4:
         st.error(f"Still ${total_goal - projected_total:,.0f} short")
 
 # =============================================
-# EXPORTS (PDF + CSV only – no more PNG issues)
+# EXPORTS (PDF fixed + CSV)
 # =============================================
 st.divider()
 col1, col2, col3 = st.columns(3)
@@ -142,9 +142,7 @@ with col2:
         pdf.cell(0, 10, "Monthly Pacing Summary:", ln=1)
         for _, row in pacing.iterrows():
             pdf.cell(0, 8, f"{row['Date']}: ${row['Cumulative $']:,.0f} ({row['% of Goal']}%)", ln=1)
-        pdf.output("/tmp/report.pdf", "F")
-        with open("/tmp/report.pdf", "rb") as f:
-            return f.read()
+        return pdf.output()   # ← Modern fpdf2 way: returns bytes directly
 
     pdf_bytes = create_pdf()
     st.download_button("📄 Export Full Report (PDF)", pdf_bytes, "2026_sales_report.pdf", "application/pdf")
@@ -153,4 +151,4 @@ with col3:
     st.download_button("📊 PowerPoint-ready CSV", csv, "for_powerpoint.csv", "text/csv")
     st.caption("Copy this CSV straight into PowerPoint or Excel slides")
 
-st.success("✅ App is now fully working! Refresh the page if needed.")
+st.success("✅ App is now fully working with all features! Refresh the page.")
