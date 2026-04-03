@@ -35,15 +35,17 @@ pacing = pd.DataFrame({
 })
 
 # =============================================
-# NEW: YoY COMPARISON TABLE (from your Excel)
+# NEW: QUARTER-BY-QUARTER YoY COMPARISON
 # =============================================
-yoy_data = pd.DataFrame({
-    "Region": ["Regional Team", "CDN", "Chicago SF", "Malls", "NYC", "Boston"],
-    "2025 Actual": [10532156, 5530737, 4531383, 89489, 213992, 170831],
-    "2026 Actual": [6400097, 4238745, 1822465, 7267, 237780, 93840],
-    "YoY Growth %": [60.77, 93.98, 40.22, 8.12, 111.12, 54.93],
-    "Cash Growth / Variance": [-4132059, -1556255, None, None, None, None]  # Only Regional Team has this
+yoy_quarterly = pd.DataFrame({
+    "Region": ["Regional Team"]*4 + ["CDN"]*2 + ["Chicago SF"]*4 + ["Malls"]*4 + ["NYC"]*4 + ["Boston"]*4,
+    "Period": ["Q1","Q2","Q3","Q4"] + ["H1","H2"] + ["Q1","Q2","Q3","Q4"]*4,
+    "2025 Actual": [2166506,2773441,2621216,2970993, 2661466,2869271, 763087,1281712,1193128,1293456, 30685,14399,15080,29325, 67816,34200.16,87182,24794, 89940,374,17,80500],
+    "2026 Actual": [2500646,2115072,1069061,715318, 2930442,1308303, 775342,622433,290011,134679, 5299,661,668,639, 42634,145067,25596,24483, 51000,42840,0,0],
+    "Cash Growth / Variance": [-4132059, -658369, -1552155, -2255675, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]
 })
+
+yoy_quarterly["YoY %"] = (yoy_quarterly["2026 Actual"] / yoy_quarterly["2025 Actual"] * 100).round(2)
 
 # =============================================
 # WHAT-IF FORECAST - ALL 4 QUARTERS
@@ -65,7 +67,7 @@ total_goal = 10805000
 pct_to_goal = (projected_total / total_goal) * 100
 
 # =============================================
-# SIDEBAR - LIVE DATA & FILTERS
+# SIDEBAR
 # =============================================
 st.sidebar.header("🔌 Live Data")
 uploaded_file = st.sidebar.file_uploader("Upload new 2026 sales.xlsx", type=["xlsx"])
@@ -96,7 +98,7 @@ regions = st.sidebar.multiselect(
 filtered_regional = regional[regional["Region"].isin(regions)]
 
 # =============================================
-# TABS (now includes new YoY tab)
+# TABS
 # =============================================
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Overview", "🌍 Regional Analysis", "📅 Monthly Pacing", "🔮 What-If Forecast", "📈 YoY Comparison"])
 
@@ -140,32 +142,32 @@ with tab4:
         st.error(f"Still ${total_goal - projected_total:,.0f} short")
 
 with tab5:
-    st.subheader("Year-over-Year Comparison (2026 Actual vs 2025 Actual)")
+    st.subheader("Year-over-Year Comparison — By Quarter")
     st.dataframe(
-        yoy_data.style.format({
+        yoy_quarterly.style.format({
             "2025 Actual": "${:,.0f}",
             "2026 Actual": "${:,.0f}",
-            "YoY Growth %": "{:.2f}%",
+            "YoY %": "{:.2f}%",
             "Cash Growth / Variance": "${:,.0f}"
         }),
         use_container_width=True
     )
     
-    # YoY bar chart
+    # YoY % chart by quarter
     fig_yoy = px.bar(
-        yoy_data,
-        x="Region",
-        y="YoY Growth %",
-        title="YoY Growth % by Region",
-        text="YoY Growth %",
-        color="YoY Growth %",
-        color_continuous_scale=["red", "lightgrey", "green"]
+        yoy_quarterly,
+        x="Period",
+        y="YoY %",
+        color="Region",
+        barmode="group",
+        title="YoY Growth % by Quarter and Region",
+        text="YoY %"
     )
     fig_yoy.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
     st.plotly_chart(fig_yoy, use_container_width=True)
 
 # =============================================
-# EXPORTS
+# EXPORTS (PDF now includes quarterly YoY)
 # =============================================
 st.divider()
 col1, col2, col3 = st.columns(3)
@@ -189,9 +191,9 @@ with col2:
         pdf.cell(0, 8, f"Q2: ${q2_proj:,.0f} ({q2_pct}%)", ln=1)
         pdf.cell(0, 8, f"Q3: ${q3_proj:,.0f} ({q3_pct}%)", ln=1)
         pdf.cell(0, 8, f"Q4: ${q4_proj:,.0f} ({q4_pct}%)", ln=1)
-        pdf.cell(0, 10, "Monthly Pacing Summary:", ln=1)
-        for _, row in pacing.iterrows():
-            pdf.cell(0, 8, f"{row['Date']}: ${row['Cumulative $']:,.0f} ({row['% of Goal']}%)", ln=1)
+        pdf.cell(0, 10, "Quarterly YoY Summary:", ln=1)
+        for _, row in yoy_quarterly.iterrows():
+            pdf.cell(0, 8, f"{row['Region']} {row['Period']}: ${row['2026 Actual']:,.0f} vs ${row['2025 Actual']:,.0f} ({row['YoY %']}%)", ln=1)
         
         buffer = io.BytesIO()
         pdf.output(name=buffer, dest='F')
@@ -205,4 +207,4 @@ with col3:
     st.download_button("📊 PowerPoint-ready CSV", csv, "for_powerpoint.csv", "text/csv")
     st.caption("Copy this CSV straight into PowerPoint or Excel slides")
 
-st.success("✅ New YoY Comparison tab added! Refresh the page.")
+st.success("✅ YoY tab is now fully quarterly! Refresh the page.")
