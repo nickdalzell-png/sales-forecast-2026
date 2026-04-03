@@ -27,18 +27,12 @@ p = pd.DataFrame({
     "Pct": [7,8,9,12,12,23,37,41,44,47,51,57]
 })
 
-yoy_region = ["Regional Team"]*4 + ["CDN"]*2 + ["Chicago SF"]*4 + ["Malls"]*4 + ["NYC"]*4 + ["Boston"]*4
-yoy_period = ["Q1","Q2","Q3","Q4"] + ["H1","H2"] + ["Q1","Q2","Q3","Q4"]*4
-yoy_2025 = [2166506,2773441,2621216,2970993,2661466,2869271,763087,1281712,1193128,1293456,30685,14399,15080,29325,67816,34200.16,87182,24794,89940,374,17,80500]
-yoy_2026 = [2500646,2115072,1069061,715318,2930442,1308303,775342,622433,290011,134679,5299,661,668,639,42634,145067,25596,24483,51000,42840,0,0]
-yoy_cash = [-4132059,-658369,-1552155,-2255675,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None]
-
 yoy = pd.DataFrame({
-    "Region": yoy_region,
-    "Period": yoy_period,
-    "2025": yoy_2025,
-    "2026": yoy_2026,
-    "Cash": yoy_cash
+    "Region": ["Regional Team"]*4 + ["CDN"]*2 + ["Chicago SF"]*4 + ["Malls"]*4 + ["NYC"]*4 + ["Boston"]*4,
+    "Period": ["Q1","Q2","Q3","Q4"] + ["H1","H2"] + ["Q1","Q2","Q3","Q4"]*4,
+    "2025": [2166506,2773441,2621216,2970993,2661466,2869271,763087,1281712,1193128,1293456,30685,14399,15080,29325,67816,34200.16,87182,24794,89940,374,17,80500],
+    "2026": [2500646,2115072,1069061,715318,2930442,1308303,775342,622433,290011,134679,5299,661,668,639,42634,145067,25596,24483,51000,42840,0,0],
+    "Cash": [-4132059,-658369,-1552155,-2255675,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None]
 })
 yoy["YoY"] = (yoy["2026"] / yoy["2025"] * 100).round(2)
 
@@ -82,3 +76,38 @@ with t1:
     with cb: st.metric("Q1 CDN", "Overperformed ✅", "+29.0% vs Goal")
     with cc: st.metric("Q1 Total Revenue", "Overperformed ✅", "+18.8% vs Goal")
     with cd: st.metric("1st Half Overall", "Strong ✅", "91.9% to Goal")
+
+with t2:
+    st.subheader("Regional")
+    st.dataframe(fr.style.format({"Goal": "${:,.0f}", "Actual": "${:,.0f}"}), use_container_width=True)
+
+with t3:
+    st.subheader("Monthly Pacing")
+    st.dataframe(p.style.format({"Cumulative $": "${:,.0f}"}), use_container_width=True)
+
+with t4:
+    st.subheader("What-If Results")
+    ca, cb, cc, cd = st.columns(4)
+    with ca: st.metric("Q1", f"${q1_proj:,.0f}", f"{q1p}%")
+    with cb: st.metric("Q2", f"${q2_proj:,.0f}", f"{q2p}%")
+    with cc: st.metric("Q3", f"${q3_proj:,.0f}", f"{q3p}%")
+    with cd: st.metric("Q4", f"${q4_proj:,.0f}", f"{q4p}%")
+    st.metric("Full Year", f"${proj:,.0f}", f"{pct:.1f}% to Goal")
+
+with t5:
+    st.subheader("YoY by Quarter")
+    st.dataframe(yoy.style.format({"2025": "${:,.0f}", "2026": "${:,.0f}", "YoY": "{:.2f}%"}), use_container_width=True)
+
+st.divider()
+c1, c2, c3 = st.columns(3)
+with c1:
+    csv = fr.to_csv(index=False).encode()
+    st.download_button("CSV", csv, "data.csv", "text/csv")
+with c2:
+    def pdf():
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", "B", 16)
+        pdf.cell(0, 10, "2026 Sales Report", ln=1)
+        pdf.set_font("Arial", "", 12)
+        pdf.cell(0, 10, f"Generated: {pd.Timestamp.now().strftime('%
