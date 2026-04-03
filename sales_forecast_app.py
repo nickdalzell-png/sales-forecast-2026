@@ -19,11 +19,11 @@ quarterly = pd.DataFrame({
 })
 
 regional = pd.DataFrame({
-    "Region": ["Overall", "CDN", "Boston", "NYC", "Malls", "Chicago SF"],   # ← Updated here
+    "Region": ["Overall", "CDN", "Boston", "NYC", "Malls", "Chicago SF"],
     "2026 Goal": [10805000, 5795000, 75000, 100000, 90000, 1818959],
     "2026 Actual": [6400097, 4238745, 93840, 237780, 7267, 0],
     "% to Goal": [59.23, 73.14, 125.12, 237.78, 8.07, 0],
-    "YoY": [60.77, 93.98, 54.93, 111.12, 0.08, None]
+    "YoY": [60.77, 93.98, 54.93, 111.12, 8.12, 40.22]
 })
 
 pacing = pd.DataFrame({
@@ -32,6 +32,17 @@ pacing = pd.DataFrame({
     "Cumulative $": [656000, 800000, 861000, 1210000, 1300000, 2370000,
                      3930000, 4350000, 4650000, 4920000, 5310000, 5960000],
     "% of Goal": [7, 8, 9, 12, 12, 23, 37, 41, 44, 47, 51, 57]
+})
+
+# =============================================
+# NEW: YoY COMPARISON TABLE (from your Excel)
+# =============================================
+yoy_data = pd.DataFrame({
+    "Region": ["Regional Team", "CDN", "Chicago SF", "Malls", "NYC", "Boston"],
+    "2025 Actual": [10532156, 5530737, 4531383, 89489, 213992, 170831],
+    "2026 Actual": [6400097, 4238745, 1822465, 7267, 237780, 93840],
+    "YoY Growth %": [60.77, 93.98, 40.22, 8.12, 111.12, 54.93],
+    "Cash Growth / Variance": [-4132059, -1556255, None, None, None, None]  # Only Regional Team has this
 })
 
 # =============================================
@@ -85,9 +96,9 @@ regions = st.sidebar.multiselect(
 filtered_regional = regional[regional["Region"].isin(regions)]
 
 # =============================================
-# MAIN TABS
+# TABS (now includes new YoY tab)
 # =============================================
-tab1, tab2, tab3, tab4 = st.tabs(["📊 Overview", "🌍 Regional Analysis", "📅 Monthly Pacing", "🔮 What-If Forecast"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Overview", "🌍 Regional Analysis", "📅 Monthly Pacing", "🔮 What-If Forecast", "📈 YoY Comparison"])
 
 with tab1:
     col1, col2, col3, col4 = st.columns(4)
@@ -127,6 +138,31 @@ with tab4:
         st.success("🎉 On track or ahead!")
     else:
         st.error(f"Still ${total_goal - projected_total:,.0f} short")
+
+with tab5:
+    st.subheader("Year-over-Year Comparison (2026 Actual vs 2025 Actual)")
+    st.dataframe(
+        yoy_data.style.format({
+            "2025 Actual": "${:,.0f}",
+            "2026 Actual": "${:,.0f}",
+            "YoY Growth %": "{:.2f}%",
+            "Cash Growth / Variance": "${:,.0f}"
+        }),
+        use_container_width=True
+    )
+    
+    # YoY bar chart
+    fig_yoy = px.bar(
+        yoy_data,
+        x="Region",
+        y="YoY Growth %",
+        title="YoY Growth % by Region",
+        text="YoY Growth %",
+        color="YoY Growth %",
+        color_continuous_scale=["red", "lightgrey", "green"]
+    )
+    fig_yoy.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
+    st.plotly_chart(fig_yoy, use_container_width=True)
 
 # =============================================
 # EXPORTS
@@ -169,4 +205,4 @@ with col3:
     st.download_button("📊 PowerPoint-ready CSV", csv, "for_powerpoint.csv", "text/csv")
     st.caption("Copy this CSV straight into PowerPoint or Excel slides")
 
-st.success("✅ CSF is now labeled as Chicago SF everywhere! Refresh the page.")
+st.success("✅ New YoY Comparison tab added! Refresh the page.")
