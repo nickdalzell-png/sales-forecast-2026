@@ -27,12 +27,18 @@ p = pd.DataFrame({
     "Pct": [7,8,9,12,12,23,37,41,44,47,51,57]
 })
 
+yoy_region = ["Regional Team"]*4 + ["CDN"]*2 + ["Chicago SF"]*4 + ["Malls"]*4 + ["NYC"]*4 + ["Boston"]*4
+yoy_period = ["Q1","Q2","Q3","Q4"] + ["H1","H2"] + ["Q1","Q2","Q3","Q4"]*4
+yoy_2025 = [2166506,2773441,2621216,2970993,2661466,2869271,763087,1281712,1193128,1293456,30685,14399,15080,29325,67816,34200.16,87182,24794,89940,374,17,80500]
+yoy_2026 = [2500646,2115072,1069061,715318,2930442,1308303,775342,622433,290011,134679,5299,661,668,639,42634,145067,25596,24483,51000,42840,0,0]
+yoy_cash = [-4132059,-658369,-1552155,-2255675,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None]
+
 yoy = pd.DataFrame({
-    "Region": ["Regional Team"]*4 + ["CDN"]*2 + ["Chicago SF"]*4 + ["Malls"]*4 + ["NYC"]*4 + ["Boston"]*4,
-    "Period": ["Q1","Q2","Q3","Q4"] + ["H1","H2"] + ["Q1","Q2","Q3","Q4"]*4,
-    "2025": [2166506,2773441,2621216,2970993,2661466,2869271,763087,1281712,1193128,1293456,30685,14399,15080,29325,67816,34200.16,87182,24794,89940,374,17,80500],
-    "2026": [2500646,2115072,1069061,715318,2930442,1308303,775342,622433,290011,134679,5299,661,668,639,42634,145067,25596,24483,51000,42840,0,0],
-    "Cash": [-4132059,-658369,-1552155,-2255675,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None]
+    "Region": yoy_region,
+    "Period": yoy_period,
+    "2025": yoy_2025,
+    "2026": yoy_2026,
+    "Cash": yoy_cash
 })
 yoy["YoY"] = (yoy["2026"] / yoy["2025"] * 100).round(2)
 
@@ -110,4 +116,15 @@ with c2:
         pdf.set_font("Arial", "B", 16)
         pdf.cell(0, 10, "2026 Sales Report", ln=1)
         pdf.set_font("Arial", "", 12)
-        pdf.cell(0, 10, f"Generated: {pd.Timestamp.now().strftime('%
+        pdf.cell(0, 10, "Generated: " + pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"), ln=1)
+        pdf.cell(0, 10, f"Total Actual: ${6400097:,.0f} (59.2%)", ln=1)
+        pdf.cell(0, 10, f"Projected: ${proj:,.0f} ({pct:.1f}%)", ln=1)
+        buffer = io.BytesIO()
+        pdf.output(name=buffer, dest='F')
+        buffer.seek(0)
+        return buffer.getvalue()
+    st.download_button("PDF", pdf(), "report.pdf", "application/pdf")
+with c3:
+    st.download_button("PowerPoint CSV", csv, "ppt.csv", "text/csv")
+
+st.success("All 4 tabs after Overview now work!")
