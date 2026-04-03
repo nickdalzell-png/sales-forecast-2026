@@ -41,24 +41,26 @@ yoy_quarterly = pd.DataFrame({
     "Region": ["Regional Team"]*4 + ["CDN"]*2 + ["Chicago SF"]*4 + ["Malls"]*4 + ["NYC"]*4 + ["Boston"]*4,
     "Period": ["Q1","Q2","Q3","Q4"] + ["H1","H2"] + ["Q1","Q2","Q3","Q4"]*4,
     "2025 Actual": [
-        2166506, 2773441, 2621216, 2970993,   # Regional Team Q1-Q4
-        2661466, 2869271,                     # CDN H1, H2
-        763087, 1281712, 1193128, 1293456,    # Chicago SF Q1-Q4
-        30685, 14399, 15080, 29325,           # Malls Q1-Q4
-        67816, 34200.16, 87182, 24794,        # NYC Q1-Q4
-        89940, 374, 17, 80500                 # Boston Q1-Q4
+        2166506, 2773441, 2621216, 2970993,
+        2661466, 2869271,
+        763087, 1281712, 1193128, 1293456,
+        30685, 14399, 15080, 29325,
+        67816, 34200.16, 87182, 24794,
+        89940, 374, 17, 80500
     ],
     "2026 Actual": [
-        2500646, 2115072, 1069061, 715318,    # Regional Team Q1-Q4
-        2930442, 1308303,                     # CDN H1, H2
-        775342, 622433, 290011, 134679,       # Chicago SF Q1-Q4
-        5299, 661, 668, 639,                  # Malls Q1-Q4
-        42634, 145067, 25596, 24483,          # NYC Q1-Q4
-        51000, 42840, 0, 0                    # Boston Q1-Q4
+        2500646, 2115072, 1069061, 715318,
+        2930442, 1308303,
+        775342, 622433, 290011, 134679,
+        5299, 661, 668, 639,
+        42634, 145067, 25596, 24483,
+        51000, 42840, 0, 0
     ],
     "Cash Growth / Variance": [
-        -4132059, -658369, -1552155, -2255675, None, None, None, None, None, None,
-        None, None, None, None, None, None, None, None, None, None, None, None
+        -4132059, -658369, -1552155, -2255675,
+        None, None, None, None, None, None,
+        None, None, None, None, None, None,
+        None, None, None, None, None, None
     ]
 })
 
@@ -124,116 +126,4 @@ with tab1:
     with col1: st.metric("2026 Actual", f"${6400097:,.0f}", "59.2% to Goal")
     with col2: st.metric("Shortfall", "-$4,404,903", "vs $10.8M goal")
     with col3: st.metric("1st Half", "91.9% to Goal", "Strong")
-    with col4: st.metric("2nd Half", "30.8% to Goal", "Recovery needed")
-
-    st.subheader("Quarterly Performance")
-    fig_q = px.bar(quarterly, x="Quarter", y=["2026 Actual", "2026 Goal"], barmode="group")
-    fig_q.add_scatter(x=quarterly["Quarter"], y=quarterly["2025 Actual"], mode="lines+markers", name="2025 Actual", line=dict(color="#16a34a"))
-    st.plotly_chart(fig_q, use_container_width=True)
-
-    # === STRONG PERFORMANCE HIGHLIGHTS ===
-    st.subheader("🔥 Strong Quarterly Performances")
-    col_a, col_b, col_c, col_d = st.columns(4)
-    with col_a:
-        st.metric("Q1 Regional Team", "Overperformed ✅", "+18.8% vs Goal")
-    with col_b:
-        st.metric("Q1 CDN", "Overperformed ✅", "+29.0% vs Goal")
-    with col_c:
-        st.metric("Q1 Total Revenue", "Overperformed ✅", "+18.8% vs Goal")
-    with col_d:
-        st.metric("1st Half Overall", "Strong ✅", "91.9% to Goal")
-
-with tab2:
-    st.subheader("Regional Performance")
-    st.dataframe(filtered_regional.style.format({"2026 Goal": "${:,.0f}", "2026 Actual": "${:,.0f}"}), use_container_width=True)
-    fig_r = px.bar(filtered_regional, x="Region", y=["2026 Actual", "2026 Goal"], barmode="group")
-    st.plotly_chart(fig_r, use_container_width=True)
-
-with tab3:
-    st.subheader("Monthly Pacing Tracker (Oct 2025 – Mar 2026)")
-    st.dataframe(pacing.style.format({"Cumulative $": "${:,.0f}"}), use_container_width=True)
-    fig_p = px.line(pacing, x="Date", y="% of Goal", markers=True, title="Cumulative % of Goal Achieved")
-    fig_p.add_bar(x=pacing["Date"], y=pacing["Cumulative $"]/10000, name="Cumulative $ (×10k)")
-    st.plotly_chart(fig_p, use_container_width=True)
-
-with tab4:
-    st.subheader("What-If Forecast Results — All 4 Quarters")
-    col_a, col_b, col_c, col_d = st.columns(4)
-    with col_a: st.metric("Q1 Projected", f"${q1_proj:,.0f}", f"{q1_pct}% of goal")
-    with col_b: st.metric("Q2 Projected", f"${q2_proj:,.0f}", f"{q2_pct}% of goal")
-    with col_c: st.metric("Q3 Projected", f"${q3_proj:,.0f}", f"{q3_pct}% of goal")
-    with col_d: st.metric("Q4 Projected", f"${q4_proj:,.0f}", f"{q4_pct}% of goal")
-    
-    st.metric("**Projected Full-Year Revenue**", f"${projected_total:,.0f}", f"{pct_to_goal:.1f}% to Goal")
-    if pct_to_goal >= 100:
-        st.success("🎉 On track or ahead!")
-    else:
-        st.error(f"Still ${total_goal - projected_total:,.0f} short")
-
-with tab5:
-    st.subheader("Year-over-Year Comparison — By Quarter")
-    col1, col2, col3, col4 = st.columns(4)
-    with col1: st.metric("Overall YoY", "60.8%", "vs 2025")
-    with col2: st.metric("CDN YoY", "94.0%", "Strong growth")
-    with col3: st.metric("Regional Team Variance", "-$4,132,059", "Cash shortfall")
-    with col4: st.metric("Chicago SF YoY", "40.2%", "Decline")
-
-    st.subheader("Quarterly YoY Breakdown")
-    st.dataframe(
-        yoy_quarterly.style.format({
-            "2025 Actual": "${:,.0f}",
-            "2026 Actual": "${:,.0f}",
-            "YoY %": "{:.2f}%",
-            "Cash Growth / Variance": "${:,.0f}"
-        }),
-        use_container_width=True
-    )
-    
-    fig_yoy = px.bar(
-        yoy_quarterly,
-        x="Period",
-        y="YoY %",
-        color="Region",
-        barmode="group",
-        title="YoY Growth % by Quarter and Region",
-        text="YoY %"
-    )
-    fig_yoy.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
-    st.plotly_chart(fig_yoy, use_container_width=True)
-
-# =============================================
-# EXPORTS
-# =============================================
-st.divider()
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    csv = filtered_regional.to_csv(index=False).encode()
-    st.download_button("📥 Download Filtered Data (CSV)", csv, "regional_filtered.csv", "text/csv")
-
-with col2:
-    def create_pdf():
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", "B", 16)
-        pdf.cell(0, 10, "2026 Sales Forecast Report", ln=1)
-        pdf.set_font("Arial", "", 12)
-        pdf.cell(0, 10, f"Generated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}", ln=1)
-        pdf.cell(0, 10, f"Total Actual: ${6400097:,.0f} (59.2% to Goal)", ln=1)
-        pdf.cell(0, 10, f"Projected Full Year: ${projected_total:,.0f} ({pct_to_goal:.1f}%)", ln=1)
-        pdf.cell(0, 10, "What-If Breakdown:", ln=1)
-        pdf.cell(0, 8, f"Q1: ${q1_proj:,.0f} ({q1_pct}%)", ln=1)
-        pdf.cell(0, 8, f"Q2: ${q2_proj:,.0f} ({q2_pct}%)", ln=1)
-        pdf.cell(0, 8, f"Q3: ${q3_proj:,.0f} ({q3_pct}%)", ln=1)
-        pdf.cell(0, 8, f"Q4: ${q4_proj:,.0f} ({q4_pct}%)", ln=1)
-        pdf.cell(0, 10, "Quarterly YoY Summary:", ln=1)
-        for _, row in yoy_quarterly.iterrows():
-            pdf.cell(0, 8, f"{row['Region']} {row['Period']}: ${row['2026 Actual']:,.0f} vs ${row['2025 Actual']:,.0f} ({row['YoY %']}%)", ln=1)
-        
-        buffer = io.BytesIO()
-        pdf.output(name=buffer, dest='F')
-        buffer.seek(0)
-        return buffer.getvalue()
-
-    pdf_bytes = create_pdf()
-    st.download_button("📄 Export Full Report (PDF
+    with col4: st.metric("2nd Half", "
