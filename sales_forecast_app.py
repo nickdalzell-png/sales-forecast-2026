@@ -141,4 +141,44 @@ with tab3:
 
 with tab4:
     st.subheader("What-If Forecast Results — All 4 Quarters")
-    col_a, col_b, col_c, col
+    col_a, col_b, col_c, col_d = st.columns(4)
+    with col_a: st.metric("Q1 Projected", f"${q1_proj:,.0f}", f"{q1_pct}% of goal")
+    with col_b: st.metric("Q2 Projected", f"${q2_proj:,.0f}", f"{q2_pct}% of goal")
+    with col_c: st.metric("Q3 Projected", f"${q3_proj:,.0f}", f"{q3_pct}% of goal")
+    with col_d: st.metric("Q4 Projected", f"${q4_proj:,.0f}", f"{q4_pct}% of goal")
+    
+    st.metric("**Projected Full-Year Revenue**", f"${projected_total:,.0f}", f"{pct_to_goal:.1f}% to Goal")
+    if pct_to_goal >= 100:
+        st.success("🎉 On track or ahead!")
+    else:
+        st.error(f"Still ${total_goal - projected_total:,.0f} short")
+
+with tab5:
+    st.subheader("Year-over-Year Comparison — By Quarter")
+    col1, col2, col3, col4 = st.columns(4)
+    with col1: st.metric("Overall YoY", "60.8%", "vs 2025")
+    with col2: st.metric("CDN YoY", "94.0%", "Strong growth")
+    with col3: st.metric("Regional Team Variance", "-$4,132,059", "Cash shortfall")
+    with col4: st.metric("Chicago SF YoY", "40.2%", "Decline")
+
+    st.subheader("Quarterly YoY Breakdown")
+    st.dataframe(
+        yoy_quarterly.style.format({
+            "2025 Actual": "${:,.0f}",
+            "2026 Actual": "${:,.0f}",
+            "YoY %": "{:.2f}%",
+            "Cash Growth / Variance": "${:,.0f}"
+        }),
+        use_container_width=True
+    )
+    
+    fig_yoy = px.bar(
+        yoy_quarterly,
+        x="Period",
+        y="YoY %",
+        color="Region",
+        barmode="group",
+        title="YoY Growth % by Quarter and Region",
+        text="YoY %"
+    )
+    fig_yoy.update_traces(texttemplate="%{text:.
