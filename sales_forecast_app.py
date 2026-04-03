@@ -27,19 +27,12 @@ p = pd.DataFrame({
     "Pct": [7,8,9,12,12,23,37,41,44,47,51,57]
 })
 
-# YoY data - split to avoid truncation
-yoy_region = ["Regional Team"]*4 + ["CDN"]*2 + ["Chicago SF"]*4 + ["Malls"]*4 + ["NYC"]*4 + ["Boston"]*4
-yoy_period = ["Q1","Q2","Q3","Q4"] + ["H1","H2"] + ["Q1","Q2","Q3","Q4"]*4
-yoy_2025 = [2166506,2773441,2621216,2970993,2661466,2869271,763087,1281712,1193128,1293456,30685,14399,15080,29325,67816,34200.16,87182,24794,89940,374,17,80500]
-yoy_2026 = [2500646,2115072,1069061,715318,2930442,1308303,775342,622433,290011,134679,5299,661,668,639,42634,145067,25596,24483,51000,42840,0,0]
-yoy_cash = [-4132059,-658369,-1552155,-2255675,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None]
-
 yoy = pd.DataFrame({
-    "Region": yoy_region,
-    "Period": yoy_period,
-    "2025": yoy_2025,
-    "2026": yoy_2026,
-    "Cash": yoy_cash
+    "Region": ["Regional Team"]*4 + ["CDN"]*2 + ["Chicago SF"]*4 + ["Malls"]*4 + ["NYC"]*4 + ["Boston"]*4,
+    "Period": ["Q1","Q2","Q3","Q4"] + ["H1","H2"] + ["Q1","Q2","Q3","Q4"]*4,
+    "2025": [2166506,2773441,2621216,2970993,2661466,2869271,763087,1281712,1193128,1293456,30685,14399,15080,29325,67816,34200.16,87182,24794,89940,374,17,80500],
+    "2026": [2500646,2115072,1069061,715318,2930442,1308303,775342,622433,290011,134679,5299,661,668,639,42634,145067,25596,24483,51000,42840,0,0],
+    "Cash": [-4132059,-658369,-1552155,-2255675,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None]
 })
 yoy["YoY"] = (yoy["2026"] / yoy["2025"] * 100).round(2)
 
@@ -49,7 +42,11 @@ q2p = st.sidebar.slider("Q2 %", 0, 200, 73, step=1)
 q3p = st.sidebar.slider("Q3 %", 0, 200, 51, step=1)
 q4p = st.sidebar.slider("Q4 %", 0, 200, 24, step=1)
 
-proj = (q["Goal"][0]*q1p/100) + (q["Goal"][1]*q2p/100) + (q["Goal"][2]*q3p/100) + (q["Goal"][3]*q4p/100)
+q1_proj = q["Goal"][0] * q1p / 100
+q2_proj = q["Goal"][1] * q2p / 100
+q3_proj = q["Goal"][2] * q3p / 100
+q4_proj = q["Goal"][3] * q4p / 100
+proj = q1_proj + q2_proj + q3_proj + q4_proj
 pct = (proj / 10805000) * 100
 
 st.sidebar.header("Live Data")
