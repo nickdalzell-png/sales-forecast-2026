@@ -71,4 +71,74 @@ pct_to_goal = (projected_total / total_goal) * 100
 # =============================================
 st.sidebar.header("🔌 Live Data")
 uploaded_file = st.sidebar.file_uploader("Upload new 2026 sales.xlsx", type=["xlsx"])
-google_url = st.sidebar.text_input("Google Sheets
+google_url = st.sidebar.text_input("Google Sheets CSV link", placeholder="https://docs.google.com/.../pub?output=csv")
+
+if uploaded_file:
+    try:
+        live_df = pd.read_excel(uploaded_file, sheet_name="25 vs 26", header=None)
+        st.sidebar.success("✅ Excel loaded!")
+        with st.expander("Raw Excel preview"):
+            st.dataframe(live_df.head(40))
+    except:
+        st.sidebar.error("Could not read sheet '25 vs 26'")
+
+if google_url:
+    try:
+        pd.read_csv(google_url)
+        st.sidebar.success("✅ Google Sheets connected!")
+    except:
+        st.sidebar.warning("Link must be published as CSV")
+
+st.sidebar.header("🔎 Regional Filters")
+regions = st.sidebar.multiselect(
+    "Choose regions",
+    options=regional["Region"].tolist(),
+    default=regional["Region"].tolist()
+)
+filtered_regional = regional[regional["Region"].isin(regions)]
+
+# =============================================
+# TABS
+# =============================================
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Overview", "🌍 Regional Analysis", "📅 Monthly Pacing", "🔮 What-If Forecast", "📈 YoY Comparison"])
+
+with tab1:
+    col1, col2, col3, col4 = st.columns(4)
+    with col1: st.metric("2026 Actual", f"${6400097:,.0f}", "59.2% to Goal")
+    with col2: st.metric("Shortfall", "-$4,404,903", "vs $10.8M goal")
+    with col3: st.metric("1st Half", "91.9% to Goal", "Strong")
+    with col4: st.metric("2nd Half", "30.8% to Goal", "Recovery needed")
+
+    st.subheader("Quarterly Performance")
+    fig_q = px.bar(quarterly, x="Quarter", y=["2026 Actual", "2026 Goal"], barmode="group")
+    fig_q.add_scatter(x=quarterly["Quarter"], y=quarterly["2025 Actual"], mode="lines+markers", name="2025 Actual", line=dict(color="#16a34a"))
+    st.plotly_chart(fig_q, use_container_width=True)
+
+    # === STRONG PERFORMANCE HIGHLIGHTS ===
+    st.subheader("🔥 Strong Quarterly Performances")
+    col_a, col_b, col_c, col_d = st.columns(4)
+    with col_a:
+        st.metric("Q1 Regional Team", "Overperformed ✅", "+18.8% vs Goal")
+    with col_b:
+        st.metric("Q1 CDN", "Overperformed ✅", "+29.0% vs Goal")
+    with col_c:
+        st.metric("Q1 Total Revenue", "Overperformed ✅", "+18.8% vs Goal")
+    with col_d:
+        st.metric("1st Half Overall", "Strong ✅", "91.9% to Goal")
+
+with tab2:
+    st.subheader("Regional Performance")
+    st.dataframe(filtered_regional.style.format({"2026 Goal": "${:,.0f}", "2026 Actual": "${:,.0f}"}), use_container_width=True)
+    fig_r = px.bar(filtered_regional, x="Region", y=["2026 Actual", "2026 Goal"], barmode="group")
+    st.plotly_chart(fig_r, use_container_width=True)
+
+with tab3:
+    st.subheader("Monthly Pacing Tracker (Oct 2025 – Mar 2026)")
+    st.dataframe(pacing.style.format({"Cumulative $": "${:,.0f}"}), use_container_width=True)
+    fig_p = px.line(pacing, x="Date", y="% of Goal", markers=True, title="Cumulative % of Goal Achieved")
+    fig_p.add_bar(x=pacing["Date"], y=pacing["Cumulative $"]/10000, name="Cumulative $ (×10k)")
+    st.plotly_chart(fig_p, use_container_width=True)
+
+with tab4:
+    st.subheader("What-If Forecast Results — All 4 Quarters")
+    col_a, col_b, col_c, col
