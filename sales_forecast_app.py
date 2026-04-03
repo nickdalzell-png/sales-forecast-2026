@@ -19,7 +19,7 @@ quarterly = pd.DataFrame({
 })
 
 regional = pd.DataFrame({
-    "Region": ["Overall", "CDN", "Boston", "NYC", "Malls", "San Fran/CSF"],
+    "Region": ["Overall", "CDN", "Boston", "NYC", "Malls", "Chicago SF"],   # ← Updated here
     "2026 Goal": [10805000, 5795000, 75000, 100000, 90000, 1818959],
     "2026 Actual": [6400097, 4238745, 93840, 237780, 7267, 0],
     "% to Goal": [59.23, 73.14, 125.12, 237.78, 8.07, 0],
@@ -44,7 +44,6 @@ q2_pct = st.sidebar.slider("Q2 % of Goal", 0, 200, int(2115072 / 2912500 * 100),
 q3_pct = st.sidebar.slider("Q3 % of Goal", 0, 200, 51, step=1)
 q4_pct = st.sidebar.slider("Q4 % of Goal", 0, 200, 24, step=1)
 
-# Calculate projected values
 q1_proj = quarterly["2026 Goal"][0] * (q1_pct / 100)
 q2_proj = quarterly["2026 Goal"][1] * (q2_pct / 100)
 q3_proj = quarterly["2026 Goal"][2] * (q3_pct / 100)
@@ -170,4 +169,4 @@ with col3:
     st.download_button("📊 PowerPoint-ready CSV", csv, "for_powerpoint.csv", "text/csv")
     st.caption("Copy this CSV straight into PowerPoint or Excel slides")
 
-st.success("✅ All 4 quarters What-If widget is now live! Refresh the page.")
+st.success("✅ CSF is now labeled as Chicago SF everywhere! Refresh the page.")
