@@ -35,7 +35,7 @@ pacing = pd.DataFrame({
 })
 
 # =============================================
-# NEW: QUARTER-BY-QUARTER YoY COMPARISON
+# QUARTER-BY-QUARTER YoY COMPARISON
 # =============================================
 yoy_quarterly = pd.DataFrame({
     "Region": ["Regional Team"]*4 + ["CDN"]*2 + ["Chicago SF"]*4 + ["Malls"]*4 + ["NYC"]*4 + ["Boston"]*4,
@@ -46,6 +46,11 @@ yoy_quarterly = pd.DataFrame({
 })
 
 yoy_quarterly["YoY %"] = (yoy_quarterly["2026 Actual"] / yoy_quarterly["2025 Actual"] * 100).round(2)
+
+# Summary metrics for YoY tab (mirroring Overview style)
+overall_yoy = 60.77
+cdn_yoy = 93.98
+regional_variance = -4132059
 
 # =============================================
 # WHAT-IF FORECAST - ALL 4 QUARTERS
@@ -143,6 +148,20 @@ with tab4:
 
 with tab5:
     st.subheader("Year-over-Year Comparison — By Quarter")
+    
+    # === METRIC CARDS (exactly like Overview tab) ===
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Overall YoY", f"{overall_yoy:.1f}%", "vs 2025")
+    with col2:
+        st.metric("CDN YoY", f"{cdn_yoy:.1f}%", "Strong growth")
+    with col3:
+        st.metric("Regional Team Variance", f"${regional_variance:,.0f}", "Cash shortfall")
+    with col4:
+        st.metric("Chicago SF YoY", "40.2%", "Decline")
+
+    # === QUARTERLY TABLE + CHART ===
+    st.subheader("Quarterly YoY Breakdown")
     st.dataframe(
         yoy_quarterly.style.format({
             "2025 Actual": "${:,.0f}",
@@ -153,7 +172,6 @@ with tab5:
         use_container_width=True
     )
     
-    # YoY % chart by quarter
     fig_yoy = px.bar(
         yoy_quarterly,
         x="Period",
@@ -167,7 +185,7 @@ with tab5:
     st.plotly_chart(fig_yoy, use_container_width=True)
 
 # =============================================
-# EXPORTS (PDF now includes quarterly YoY)
+# EXPORTS
 # =============================================
 st.divider()
 col1, col2, col3 = st.columns(3)
@@ -207,4 +225,4 @@ with col3:
     st.download_button("📊 PowerPoint-ready CSV", csv, "for_powerpoint.csv", "text/csv")
     st.caption("Copy this CSV straight into PowerPoint or Excel slides")
 
-st.success("✅ YoY tab is now fully quarterly! Refresh the page.")
+st.success("✅ YoY tab now formatted exactly like Overview! Refresh the page.")
