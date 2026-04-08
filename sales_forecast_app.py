@@ -112,4 +112,4 @@ with tab4:
     st.dataframe(yoy.style.format({"2025": "${:,.0f}", "2026": "${:,.0f}", "YoY": "{:.2f}%"}), use_container_width=True)
 
 st.divider()
-st.success("All tabs now work – upload Excel to update everything")
+st.success("✅ Live Excel upload works – upload your file to update everything")
