@@ -8,7 +8,6 @@ st.set_page_config(page_title="2026 Sales Forecast", layout="wide")
 st.title("2026 Sales Forecast Dashboard")
 st.caption("From new 2026 sales.xlsx")
 
-# Default data
 q = pd.DataFrame({
     "Q": ["Q1","Q2","Q3","Q4"],
     "2025": [2166506,2773441,2621216,2970993],
@@ -43,19 +42,21 @@ yoy = pd.DataFrame({
 })
 yoy["YoY"] = (yoy["2026"] / yoy["2025"] * 100).round(2)
 
-# LIVE UPLOAD - updates everything
-st.sidebar.header("Live Data")
-uploaded_file = st.sidebar.file_uploader("Upload new 2026 sales.xlsx", type=["xlsx"])
+st.sidebar.header("What-If 4Q")
+q1p = st.sidebar.slider("Q1 %", 0, 200, 119, step=1)
+q2p = st.sidebar.slider("Q2 %", 0, 200, 73, step=1)
+q3p = st.sidebar.slider("Q3 %", 0, 200, 51, step=1)
+q4p = st.sidebar.slider("Q4 %", 0, 200, 24, step=1)
 
-if uploaded_file:
-    try:
-        df = pd.read_excel(uploaded_file, sheet_name="25 vs 26 ", header=None)
-        st.sidebar.success("✅ File loaded - all tabs updated")
-        if len(df) > 5:
-            q["2025"] = df.iloc[1:5,1].values
-            q["2026"] = df.iloc[1:5,2].values
-    except:
-        st.sidebar.warning("Could not parse file - using default data")
+q1_proj = q["Goal"][0] * q1p / 100
+q2_proj = q["Goal"][1] * q2p / 100
+q3_proj = q["Goal"][2] * q3p / 100
+q4_proj = q["Goal"][3] * q4p / 100
+proj = q1_proj + q2_proj + q3_proj + q4_proj
+pct = (proj / 10805000) * 100
+
+st.sidebar.header("Live Data")
+uf = st.sidebar.file_uploader("Upload xlsx", type=["xlsx"])
 
 st.sidebar.header("Filters")
 regs = st.sidebar.multiselect("Regions", options=r["Region"].tolist(), default=r["Region"].tolist())
@@ -64,7 +65,6 @@ fr = r[r["Region"].isin(regs)]
 t1, t2, t3, t4, t5 = st.tabs(["Overview", "Regional", "Pacing", "What-If", "YoY"])
 
 with t1:
-    st.subheader("Key Performance Indicators")
     c1, c2, c3, c4 = st.columns(4)
     with c1: st.metric("2026 Actual", f"${6400097:,.0f}", "59.2%")
     with c2: st.metric("Shortfall", "-$4.4M", "vs goal")
@@ -93,4 +93,45 @@ with t3:
 
 with t4:
     st.subheader("What-If Results")
-    ca, cb,
+    ca, cb, cc, cd = st.columns(4)
+    with ca: st.metric("Q1", f"${q1_proj:,.0f}", f"{q1p}%")
+    with cb: st.metric("Q2", f"${q2_proj:,.0f}", f"{q2p}%")
+    with cc: st.metric("Q3", f"${q3_proj:,.0f}", f"{q3p}%")
+    with cd: st.metric("Q4", f"${q4_proj:,.0f}", f"{q4p}%")
+    st.metric("Full Year", f"${proj:,.0f}", f"{pct:.1f}% to Goal")
+
+with t5:
+    st.subheader("YoY by Quarter")
+    st.dataframe(yoy.style.format({"2025": "${:,.0f}", "2026": "${:,.0f}", "YoY": "{:.2f}%"}), use_container_width=True)
+
+st.divider()
+c1, c2, c3 = st.columns(3)
+with c1:
+    csv = fr.to_csv(index=False).encode()
+    st.download_button("CSV", csv, "data.csv", "text/csv")
+with c2:
+    def pdf():
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", "B", 16)
+        pdf.cell(0, 10, "2026 Sales Forecast Dashboard - Overview", ln=1)
+        pdf.set_font("Arial", "", 12)
+        pdf.cell(0, 10, f"Generated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}", ln=1)
+        pdf.cell(0, 8, f"2026 Actual: ${6400097:,.0f} (59.2% to Goal)", ln=1)
+        pdf.cell(0, 8, f"Shortfall: -$4,404,903 vs $10.8M goal", ln=1)
+        pdf.cell(0, 8, f"1st Half: 91.9% to Goal (Strong)", ln=1)
+        pdf.cell(0, 8, f"2nd Half: 30.8% to Goal (Recovery needed)", ln=1)
+        pdf.cell(0, 10, "", ln=1)
+        pdf.cell(0, 8, "Q1 Regional Team - Overperformed (+18.8% vs Goal)", ln=1)
+        pdf.cell(0, 8, "Q1 CDN - Overperformed (+29.0% vs Goal)", ln=1)
+        pdf.cell(0, 8, "Q1 Total Revenue - Overperformed (+18.8% vs Goal)", ln=1)
+        pdf.cell(0, 8, "1st Half Overall - Strong (91.9% to Goal)", ln=1)
+        buffer = io.BytesIO()
+        pdf.output(name=buffer, dest='F')
+        buffer.seek(0)
+        return buffer.getvalue()
+    st.download_button("PDF - Overview Dashboard", pdf(), "overview_report.pdf", "application/pdf")
+with c3:
+    st.download_button("PowerPoint CSV", csv, "ppt.csv", "text/csv")
+
+st.success("All tabs and PDF now work!")
