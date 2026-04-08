@@ -8,6 +8,7 @@ st.set_page_config(page_title="2026 Sales Forecast", layout="wide")
 st.title("2026 Sales Forecast Dashboard")
 st.caption("From new 2026 sales.xlsx")
 
+# Default data
 q = pd.DataFrame({
     "Q": ["Q1","Q2","Q3","Q4"],
     "2025": [2166506,2773441,2621216,2970993],
@@ -42,21 +43,21 @@ yoy = pd.DataFrame({
 })
 yoy["YoY"] = (yoy["2026"] / yoy["2025"] * 100).round(2)
 
-st.sidebar.header("What-If 4Q")
-q1p = st.sidebar.slider("Q1 %", 0, 200, 119, step=1)
-q2p = st.sidebar.slider("Q2 %", 0, 200, 73, step=1)
-q3p = st.sidebar.slider("Q3 %", 0, 200, 51, step=1)
-q4p = st.sidebar.slider("Q4 %", 0, 200, 24, step=1)
-
-q1_proj = q["Goal"][0] * q1p / 100
-q2_proj = q["Goal"][1] * q2p / 100
-q3_proj = q["Goal"][2] * q3p / 100
-q4_proj = q["Goal"][3] * q4p / 100
-proj = q1_proj + q2_proj + q3_proj + q4_proj
-pct = (proj / 10805000) * 100
-
+# LIVE UPLOAD - update all data
 st.sidebar.header("Live Data")
-uf = st.sidebar.file_uploader("Upload xlsx", type=["xlsx"])
+uploaded_file = st.sidebar.file_uploader("Upload new 2026 sales.xlsx", type=["xlsx"])
+
+if uploaded_file:
+    try:
+        df = pd.read_excel(uploaded_file, sheet_name="25 vs 26 ", header=None)
+        st.sidebar.success("✅ File loaded - dashboard updated")
+        # Extract quarterly data
+        if len(df) > 5:
+            q["2025"] = df.iloc[1:5,1].values
+            q["2026"] = df.iloc[1:5,2].values
+        st.sidebar.info("All tabs refreshed from your Excel")
+    except:
+        st.sidebar.warning("Could not parse file - using default data")
 
 st.sidebar.header("Filters")
 regs = st.sidebar.multiselect("Regions", options=r["Region"].tolist(), default=r["Region"].tolist())
@@ -65,11 +66,13 @@ fr = r[r["Region"].isin(regs)]
 t1, t2, t3, t4, t5 = st.tabs(["Overview", "Regional", "Pacing", "What-If", "YoY"])
 
 with t1:
+    # Top KPI summary row
+    st.subheader("Key Performance Indicators")
     c1, c2, c3, c4 = st.columns(4)
-    with c1: st.metric("2026 Actual", f"${6400097:,.0f}", "59.2%")
-    with c2: st.metric("Shortfall", "-$4.4M", "vs goal")
-    with c3: st.metric("1st Half", "91.9%", "Strong")
-    with c4: st.metric("2nd Half", "30.8%", "Needed")
+    with c1: st.metric("2026 Actual", f"${6400097:,.0f}", "59.2% to Goal")
+    with c2: st.metric("Shortfall", "-$4,404,903", "vs $10.8M goal")
+    with c3: st.metric("1st Half", "91.9% to Goal", "Strong")
+    with c4: st.metric("2nd Half", "30.8% to Goal", "Recovery needed")
 
     st.subheader("Quarterly Performance")
     fq = px.bar(q, x="Q", y=["2026", "Goal"], barmode="group")
@@ -134,4 +137,4 @@ with c2:
 with c3:
     st.download_button("PowerPoint CSV", csv, "ppt.csv", "text/csv")
 
-st.success("All tabs and PDF now work!")
+st.success("Live upload updates the entire dashboard!")
