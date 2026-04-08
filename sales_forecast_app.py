@@ -8,41 +8,46 @@ st.set_page_config(page_title="2026 Sales Forecast", layout="wide")
 st.title("🚀 2026 Sales Forecast Dashboard")
 st.caption("Live from your Excel file")
 
-# ----------------- LIVE EXCEL UPLOAD -----------------
-st.sidebar.header("📤 Live Data")
-uploaded_file = st.sidebar.file_uploader("Upload new 2026 sales.xlsx", type=["xlsx"])
+# LIVE UPLOAD
+st.sidebar.header("Live Data")
+uf = st.sidebar.file_uploader("Upload new 2026 sales.xlsx", type=["xlsx"])
 
-if uploaded_file is None:
-    st.sidebar.info("Using default data – upload your Excel to update everything")
+if uf is None:
+    st.sidebar.info("Using default data – upload Excel to update everything")
     df = None
 else:
     try:
-        df = pd.read_excel(uploaded_file, sheet_name="25 vs 26 ", header=None)
+        df = pd.read_excel(uf, sheet_name="25 vs 26 ", header=None)
         st.sidebar.success("✅ Excel loaded – all tabs updated!")
     except:
         st.sidebar.error("Could not read file – using default data")
         df = None
 
-# ----------------- DATA PARSING -----------------
+# QUARTERLY DATA
 if df is not None and len(df) > 10:
-    q_data = {
-        "Quarter": ["Q1", "Q2", "Q3", "Q4"],
-        "2025 Actual": df.iloc[1:5, 1].values,
-        "2026 Actual": df.iloc[1:5, 2].values,
-        "Goal": df.iloc[1:5, 3].values
-    }
+    q = pd.DataFrame({
+        "Quarter": ["Q1","Q2","Q3","Q4"],
+        "2025 Actual": df.iloc[1:5,1].values,
+        "2026 Actual": df.iloc[1:5,2].values,
+        "Goal": df.iloc[1:5,3].values
+    })
 else:
-    q_data = {
-        "Quarter": ["Q1", "Q2", "Q3", "Q4"],
-        "2025 Actual": [2166506, 2773441, 2621216, 2970993],
-        "2026 Actual": [2500646, 2115072, 1069061, 715318],
-        "Goal": [2105000, 2912500, 2777500, 3010000]
-    }
+    q = pd.DataFrame({
+        "Quarter": ["Q1","Q2","Q3","Q4"],
+        "2025 Actual": [2166506,2773441,2621216,2970993],
+        "2026 Actual": [2500646,2115072,1069061,715318],
+        "Goal": [2105000,2912500,2777500,3010000]
+    })
 
-q = pd.DataFrame(q_data)
+# REGIONAL DATA
+r = pd.DataFrame({
+    "Region": ["Overall","CDN","Boston","NYC","Malls","Chicago SF"],
+    "Goal": [10805000,5795000,75000,100000,90000,1818959],
+    "Actual": [6400097,4238745,93840,237780,7267,0]
+})
 
-# ----------------- WHAT-IF TOOL -----------------
-st.sidebar.header("🔮 What-If Forecast")
+# WHAT-IF SLIDERS
+st.sidebar.header("What-If 4Q")
 q1p = st.sidebar.slider("Q1 % of Goal", 0, 200, 119, step=1)
 q2p = st.sidebar.slider("Q2 % of Goal", 0, 200, 73, step=1)
 q3p = st.sidebar.slider("Q3 % of Goal", 0, 200, 51, step=1)
@@ -56,19 +61,19 @@ total_proj = q1_proj + q2_proj + q3_proj + q4_proj
 total_goal = q["Goal"].sum()
 pct_to_goal = (total_proj / total_goal) * 100
 
-# ----------------- TABS -----------------
-tab1, tab2, tab3, tab4 = st.tabs(["📊 Overview", "🌍 Regional", "📈 What-If", "📅 YoY Comparison"])
+# TABS
+tab1, tab2, tab3, tab4 = st.tabs(["Overview", "Regional", "What-If", "YoY"])
 
 with tab1:
     st.subheader("Key Performance Indicators")
     c1, c2, c3, c4 = st.columns(4)
     with c1: st.metric("2026 Total Actual", f"${q['2026 Actual'].sum():,.0f}", f"{(q['2026 Actual'].sum()/total_goal*100):.1f}% to Goal")
-    with c2: st.metric("Total Goal", f"${total_goal:,.0f}", "—")
+    with c2: st.metric("Total Goal", f"${total_goal:,.0f}")
     with c3: st.metric("1st Half", f"{(q['2026 Actual'].iloc[0:2].sum()/q['Goal'].iloc[0:2].sum()*100):.1f}%", "Strong")
     with c4: st.metric("2nd Half", f"{(q['2026 Actual'].iloc[2:4].sum()/q['Goal'].iloc[2:4].sum()*100):.1f}%", "Needed")
 
     st.subheader("Quarterly Performance")
-    fig = px.bar(q, x="Quarter", y=["2026 Actual", "Goal"], barmode="group", title="Actual vs Goal by Quarter")
+    fig = px.bar(q, x="Quarter", y=["2026 Actual", "Goal"], barmode="group")
     fig.add_scatter(x=q["Quarter"], y=q["2025 Actual"], mode="lines+markers", name="2025 Actual")
     st.plotly_chart(fig, use_container_width=True)
 
@@ -80,7 +85,7 @@ with tab1:
     with cd: st.metric("1st Half", "Strong ✅", "91.9%")
 
 with tab2:
-    st.subheader("Regional Breakdown")
+    st.subheader("Regional Breakdown – Actual vs Goal")
     st.dataframe(r.style.format({"Goal": "${:,.0f}", "Actual": "${:,.0f}"}), use_container_width=True)
 
 with tab3:
@@ -97,10 +102,4 @@ with tab4:
     st.dataframe(yoy.style.format({"2025": "${:,.0f}", "2026": "${:,.0f}", "YoY": "{:.2f}%"}), use_container_width=True)
 
 st.divider()
-c1, c2 = st.columns(2)
-with c1:
-    st.download_button("📄 Export Overview PDF", "PDF coming soon", "overview.pdf", "application/pdf")
-with c2:
-    st.success("Dashboard updated with latest Excel data!")
-
-st.success("✅ This is the best version – clean, live, and executive-ready!")
+st.success("✅ Dashboard updated with latest Excel data!")
