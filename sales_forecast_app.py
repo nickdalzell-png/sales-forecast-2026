@@ -39,48 +39,4 @@ else:
 
 r = pd.DataFrame({
     "Region": ["Overall","CDN","Boston","NYC","Malls","Chicago SF"],
-    "Goal": [10805000,5795000,75000,100000,90000,1818959],
-    "Actual": [6400097,4238745,93840,237780,7267,0]
-})
-
-st.sidebar.header("What-If 4Q")
-q1p = st.sidebar.slider("Q1 %", 0, 200, 119, step=1)
-q2p = st.sidebar.slider("Q2 %", 0, 200, 73, step=1)
-q3p = st.sidebar.slider("Q3 %", 0, 200, 51, step=1)
-q4p = st.sidebar.slider("Q4 %", 0, 200, 24, step=1)
-
-q1_proj = q["Goal"][0] * q1p / 100
-q2_proj = q["Goal"][1] * q2p / 100
-q3_proj = q["Goal"][2] * q3p / 100
-q4_proj = q["Goal"][3] * q4p / 100
-total_proj = q1_proj + q2_proj + q3_proj + q4_proj
-total_goal = q["Goal"].sum()
-pct_to_goal = (total_proj / total_goal) * 100
-
-yoy_region = ["Regional Team"]*4 + ["CDN"]*2 + ["Chicago SF"]*4 + ["Malls"]*4 + ["NYC"]*4 + ["Boston"]*4
-yoy_period = ["Q1","Q2","Q3","Q4"] + ["H1","H2"] + ["Q1","Q2","Q3","Q4"]*4
-yoy_2025 = [2166506,2773441,2621216,2970993,2661466,2869271,763087,1281712,1193128,1293456,30685,14399,15080,29325,67816,34200.16,87182,24794,89940,374,17,80500]
-yoy_2026 = [2500646,2115072,1069061,715318,2930442,1308303,775342,622433,290011,134679,5299,661,668,639,42634,145067,25596,24483,51000,42840,0,0]
-yoy_cash = [-4132059,-658369,-1552155,-2255675,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None]
-
-yoy = pd.DataFrame({
-    "Region": yoy_region,
-    "Period": yoy_period,
-    "2025": yoy_2025,
-    "2026": yoy_2026,
-    "Cash": yoy_cash
-})
-yoy["YoY"] = (yoy["2026"] / yoy["2025"] * 100).round(2)
-
-tabs_list = st.tabs(["Overview", "Regional", "What-If", "YoY"])
-tab1 = tabs_list[0]
-tab2 = tabs_list[1]
-tab3 = tabs_list[2]
-tab4 = tabs_list[3]
-
-with tab1:
-    st.subheader("Key Performance Indicators")
-    c1, c2, c3, c4 = st.columns(4)
-    with c1: st.metric("2026 Total Actual", f"${q['2026 Actual'].sum():,.0f}", f"{(q['2026 Actual'].sum()/total_goal*100):.1f}% to Goal")
-    with c2: st.metric("Total Goal", f"${total_goal:,.0f}")
-    with c3: st.metric("1st Half", f"{
+    "Goal": [10805000,5795000,75000,100000,90000,181
