@@ -93,45 +93,4 @@ with t3:
 
 with t4:
     st.subheader("What-If Results")
-    ca, cb, cc, cd = st.columns(4)
-    with ca: st.metric("Q1", f"${q1_proj:,.0f}", f"{q1p}%")
-    with cb: st.metric("Q2", f"${q2_proj:,.0f}", f"{q2p}%")
-    with cc: st.metric("Q3", f"${q3_proj:,.0f}", f"{q3p}%")
-    with cd: st.metric("Q4", f"${q4_proj:,.0f}", f"{q4p}%")
-    st.metric("Full Year", f"${proj:,.0f}", f"{pct:.1f}% to Goal")
-
-with t5:
-    st.subheader("YoY by Quarter")
-    st.dataframe(yoy.style.format({"2025": "${:,.0f}", "2026": "${:,.0f}", "YoY": "{:.2f}%"}), use_container_width=True)
-
-st.divider()
-c1, c2, c3 = st.columns(3)
-with c1:
-    csv = fr.to_csv(index=False).encode()
-    st.download_button("CSV", csv, "data.csv", "text/csv")
-with c2:
-    def pdf():
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", "B", 16)
-        pdf.cell(0, 10, "2026 Sales Forecast Dashboard - Overview", ln=1)
-        pdf.set_font("Arial", "", 12)
-        pdf.cell(0, 10, f"Generated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}", ln=1)
-        pdf.cell(0, 8, f"2026 Actual: ${6400097:,.0f} (59.2% to Goal)", ln=1)
-        pdf.cell(0, 8, f"Shortfall: -$4,404,903 vs $10.8M goal", ln=1)
-        pdf.cell(0, 8, f"1st Half: 91.9% to Goal (Strong)", ln=1)
-        pdf.cell(0, 8, f"2nd Half: 30.8% to Goal (Recovery needed)", ln=1)
-        pdf.cell(0, 10, "", ln=1)
-        pdf.cell(0, 8, "Q1 Regional Team - Overperformed (+18.8% vs Goal)", ln=1)
-        pdf.cell(0, 8, "Q1 CDN - Overperformed (+29.0% vs Goal)", ln=1)
-        pdf.cell(0, 8, "Q1 Total Revenue - Overperformed (+18.8% vs Goal)", ln=1)
-        pdf.cell(0, 8, "1st Half Overall - Strong (91.9% to Goal)", ln=1)
-        buffer = io.BytesIO()
-        pdf.output(name=buffer, dest='F')
-        buffer.seek(0)
-        return buffer.getvalue()
-    st.download_button("PDF - Overview Dashboard", pdf(), "overview_report.pdf", "application/pdf")
-with c3:
-    st.download_button("PowerPoint CSV", csv, "ppt.csv", "text/csv")
-
-st.success("Live upload now updates the entire dashboard!")
+    ca, cb,
