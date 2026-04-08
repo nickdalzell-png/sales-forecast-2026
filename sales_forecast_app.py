@@ -117,7 +117,6 @@ with c2:
         pdf.cell(0, 10, "2026 Sales Forecast Dashboard - Overview", ln=1)
         pdf.set_font("Arial", "", 12)
         pdf.cell(0, 10, f"Generated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}", ln=1)
-        pdf.cell(0, 10, "", ln=1)
         pdf.cell(0, 8, f"2026 Actual: ${6400097:,.0f} (59.2% to Goal)", ln=1)
         pdf.cell(0, 8, f"Shortfall: -$4,404,903 vs $10.8M goal", ln=1)
         pdf.cell(0, 8, f"1st Half: 91.9% to Goal (Strong)", ln=1)
