@@ -115,4 +115,34 @@ with tab3:
     with c1: st.metric("Q1 Projected", f"${q1_proj:,.0f}", f"{q1p}%")
     with c2: st.metric("Q2 Projected", f"${q2_proj:,.0f}", f"{q2p}%")
     with c3: st.metric("Q3 Projected", f"${q3_proj:,.0f}", f"{q3p}%")
-    with c4: st.metric("Q4 Projected", f"${q4_proj:,.0f}", f"{}
+    with c4: st.metric("Q4 Projected", f"${q4_proj:,.0f}", f"{q4p}%")
+    st.metric("Full Year Projected", f"${total_proj:,.0f}", f"{pct_to_goal:.1f}% to Goal")
+
+with tab4:
+    st.subheader("YoY Comparison")
+    fig_yoy = px.bar(yoy, x="Period", y="YoY", color="Region", title="YoY % Growth")
+    st.plotly_chart(fig_yoy, use_container_width=True)
+    st.dataframe(yoy.style.format({"2025": "${:,.0f}", "2026": "${:,.0f}", "YoY": "{:.2f}%"}), use_container_width=True)
+
+st.divider()
+c1, c2 = st.columns(2)
+with c1:
+    def pdf():
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", "B", 16)
+        pdf.cell(0, 10, "2026 Sales Forecast - Executive Overview", ln=1)
+        pdf.set_font("Arial", "", 12)
+        pdf.cell(0, 10, f"Generated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}", ln=1)
+        pdf.cell(0, 8, f"Total Actual: ${q['2026 Actual'].sum():,.0f} ({pct_to_goal:.1f}% to Goal)", ln=1)
+        pdf.cell(0, 8, f"1st Half: {h1_pct:.1f}%", ln=1)
+        pdf.cell(0, 8, f"2nd Half: {h2_pct:.1f}%", ln=1)
+        buffer = io.BytesIO()
+        pdf.output(name=buffer, dest='F')
+        buffer.seek(0)
+        return buffer.getvalue()
+    st.download_button("PDF - Executive Overview", pdf(), "2026_Executive_Overview.pdf", "application/pdf")
+with c2:
+    st.success("Live Excel upload updates all tabs")
+
+st.success("CEO-ready dashboard – upload your latest Excel to see real-time updates!")
