@@ -115,4 +115,4 @@ with tab3:
     with c1: st.metric("Q1 Projected", f"${q1_proj:,.0f}", f"{q1p}%")
     with c2: st.metric("Q2 Projected", f"${q2_proj:,.0f}", f"{q2p}%")
     with c3: st.metric("Q3 Projected", f"${q3_proj:,.0f}", f"{q3p}%")
-    with c4: st.metric("Q4 Projected", f"${q4_proj:,.0f}", f"{
+    with c4: st.metric("Q4 Projected", f"${q4_proj:,.0f}", f"{}
