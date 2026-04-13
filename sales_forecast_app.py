@@ -57,39 +57,16 @@ total_proj = q1_proj + q2_proj + q3_proj + q4_proj
 total_goal = q["Goal"].sum()
 pct_to_goal = (total_proj / total_goal) * 100
 
-yoy_region = ["Regional Team"]*4 + ["CDN"]*2
-yoy_region += ["Chicago SF"]*4 + ["Malls"]*4
-yoy_region += ["NYC"]*4 + ["Boston"]*4
+# YO Y DATA - built with concat to avoid long lists
+yoy = pd.concat([
+    pd.DataFrame({"Region":["Regional Team"]*4, "Period":["Q1","Q2","Q3","Q4"], "2025":[2166506,2773441,2621216,2970993], "2026":[2500378,2537639,1367351,717692], "Cash":[-4132059,-658369,-1552155,-2255675]}),
+    pd.DataFrame({"Region":["CDN"]*2, "Period":["H1","H2"], "2025":[2661466,2869271], "2026":[3044271,1403808], "Cash":[None,None]}),
+    pd.DataFrame({"Region":["Chicago SF"]*4, "Period":["Q1","Q2","Q3","Q4"], "2025":[763087,1281712,1193128,1293456], "2026":[775074,927669,494178,135671], "Cash":[None,None,None,None]}),
+    pd.DataFrame({"Region":["Malls"]*4, "Period":["Q1","Q2","Q3","Q4"], "2025":[30685,14399,15080,29325], "2026":[5299,661,668,639], "Cash":[None,None,None,None]}),
+    pd.DataFrame({"Region":["NYC"]*4, "Period":["Q1","Q2","Q3","Q4"], "2025":[67816,34200.16,87182,24794], "2026":[42634,145067,25596,24483], "Cash":[None,None,None,None]}),
+    pd.DataFrame({"Region":["Boston"]*4, "Period":["Q1","Q2","Q3","Q4"], "2025":[89940,374,17,80500], "2026":[51000,42840,0,0], "Cash":[None,None,None,None]})
+])
 
-yoy_period = ["Q1","Q2","Q3","Q4"] + ["H1","H2"]
-yoy_period += ["Q1","Q2","Q3","Q4"]*4
-
-yoy_2025 = [2166506,2773441,2621216,2970993]
-yoy_2025 += [2661466,2869271,763087,1281712]
-yoy_2025 += [1193128,1293456,30685,14399]
-yoy_2025 += [15080,29325,67816,34200.16]
-yoy_2025 += [87182,24794,89940,374]
-yoy_2025 += [17,80500]
-
-yoy_2026 = [2500378,2537639,1367351,717692]
-yoy_2026 += [3044271,1403808,775074,927669]
-yoy_2026 += [494178,135671,42634,145067]
-yoy_2026 += [25596,24483,51000,42840]
-yoy_2026 += [0,0]
-
-yoy_cash = [-4132059,-658369,-1552155,-2255675]
-yoy_cash += [None,None,None,None]
-yoy_cash += [None,None,None,None]
-yoy_cash += [None,None,None,None]
-yoy_cash += [None,None]
-
-yoy = pd.DataFrame({
-    "Region": yoy_region,
-    "Period": yoy_period,
-    "2025": yoy_2025,
-    "2026": yoy_2026,
-    "Cash": yoy_cash
-})
 yoy["YoY"] = (yoy["2026"] / yoy["2025"] * 100).round(2)
 
 tabs_list = st.tabs(["Overview", "Regional", "What-If", "YoY"])
@@ -103,59 +80,4 @@ with tab1:
     c1, c2, c3, c4 = st.columns(4)
     with c1: st.metric("2026 Total Actual", f"${q['2026 Actual'].sum():,.0f}", f"{(q['2026 Actual'].sum()/total_goal*100):.1f}% to Goal")
     with c2: st.metric("Total Goal", f"${total_goal:,.0f}")
-    with c3: st.metric("1st Half", f"{(q['2026 Actual'].iloc[0:2].sum()/q['Goal'].iloc[0:2].sum()*100):.1f}%", "Strong")
-    with c4: st.metric("2nd Half", f"{(q['2026 Actual'].iloc[2:4].sum()/q['Goal'].iloc[2:4].sum()*100):.1f}%", "Needed")
-
-    st.subheader("Quarterly Performance")
-    fig = px.bar(q, x="Quarter", y=["2026 Actual", "Goal"], barmode="group")
-    fig.add_scatter(x=q["Quarter"], y=q["2025 Actual"], mode="lines+markers", name="2025 Actual")
-    st.plotly_chart(fig, use_container_width=True)
-
-    st.subheader("Strong Quarterly Performances")
-    ca, cb, cc, cd = st.columns(4)
-    with ca: st.metric("Q1 Regional", "Overperformed", "+18.8%")
-    with cb: st.metric("Q1 CDN", "Overperformed", "+29.0%")
-    with cc: st.metric("Q1 Total", "Overperformed", "+18.8%")
-    with cd: st.metric("1st Half", "Strong", "91.9%")
-
-with tab2:
-    st.subheader("Regional Actual vs Goal")
-    st.dataframe(r.style.format({"Goal": "${:,.0f}", "Actual": "${:,.0f}"}), use_container_width=True)
-
-with tab3:
-    st.subheader("What-If Forecast - All 4 Quarters")
-    c1, c2, c3, c4 = st.columns(4)
-    with c1: st.metric("Q1 Projected", f"${q1_proj:,.0f}", f"{q1p}%")
-    with c2: st.metric("Q2 Projected", f"${q2_proj:,.0f}", f"{q2p}%")
-    with c3: st.metric("Q3 Projected", f"${q3_proj:,.0f}", f"{q3p}%")
-    with c4: st.metric("Q4 Projected", f"${q4_proj:,.0f}", f"{q4p}%")
-    st.metric("Full Year Projected", f"${total_proj:,.0f}", f"{pct_to_goal:.1f}% to Goal")
-
-with tab4:
-    st.subheader("YoY Comparison")
-    fig_yoy = px.bar(yoy, x="Period", y="YoY", color="Region", title="YoY % Growth")
-    st.plotly_chart(fig_yoy, use_container_width=True)
-    st.dataframe(yoy.style.format({"2025": "${:,.0f}", "2026": "${:,.0f}", "YoY": "{:.2f}%"}), use_container_width=True)
-
-st.divider()
-c1, c2 = st.columns(2)
-with c1:
-    def pdf():
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", "B", 16)
-        pdf.cell(0, 10, "2026 Sales Forecast - Executive Overview", ln=1)
-        pdf.set_font("Arial", "", 12)
-        pdf.cell(0, 10, f"Generated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}", ln=1)
-        pdf.cell(0, 8, f"Total Actual: ${q['2026 Actual'].sum():,.0f} ({pct_to_goal:.1f}% to Goal)", ln=1)
-        pdf.cell(0, 8, f"1st Half: {(q['2026 Actual'].iloc[0:2].sum()/q['Goal'].iloc[0:2].sum()*100):.1f}%", ln=1)
-        pdf.cell(0, 8, f"2nd Half: {(q['2026 Actual'].iloc[2:4].sum()/q['Goal'].iloc[2:4].sum()*100):.1f}%", ln=1)
-        buffer = io.BytesIO()
-        pdf.output(name=buffer, dest='F')
-        buffer.seek(0)
-        return buffer.getvalue()
-    st.download_button("PDF - Executive Overview", pdf(), "2026_Executive_Overview.pdf", "application/pdf")
-with c2:
-    st.success("Live Excel upload updates all tabs")
-
-st.success("CEO-ready dashboard – upload your latest Excel to see real-time updates!")
+    with c3: st.metric("1st Half", f"{
