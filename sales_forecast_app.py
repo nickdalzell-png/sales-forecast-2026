@@ -57,8 +57,9 @@ total_proj = q1_proj + q2_proj + q3_proj + q4_proj
 total_goal = q["Goal"].sum()
 pct_to_goal = (total_proj / total_goal) * 100
 
-yoy_region = ["Regional Team"]*4 + ["CDN"]*2 + ["Chicago SF"]*4
-yoy_region += ["Malls"]*4 + ["NYC"]*4 + ["Boston"]*4
+yoy_region = ["Regional Team"]*4 + ["CDN"]*2
+yoy_region += ["Chicago SF"]*4 + ["Malls"]*4
+yoy_region += ["NYC"]*4 + ["Boston"]*4
 
 yoy_period = ["Q1","Q2","Q3","Q4"] + ["H1","H2"]
 yoy_period += ["Q1","Q2","Q3","Q4"]*4
