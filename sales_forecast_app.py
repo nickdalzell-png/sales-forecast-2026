@@ -64,19 +64,16 @@ h2_actual = q["2026 Actual"].iloc[2:4].sum()
 h2_goal = q["Goal"].iloc[2:4].sum()
 h2_pct = (h2_actual / h2_goal * 100)
 
-yoy_region = ["Regional Team"]*4 + ["CDN"]*2 + ["Chicago SF"]*4 + ["Malls"]*4 + ["NYC"]*4 + ["Boston"]*4
-yoy_period = ["Q1","Q2","Q3","Q4"] + ["H1","H2"] + ["Q1","Q2","Q3","Q4"]*4
-yoy_2025 = [2166506,2773441,2621216,2970993,2661466,2869271,763087,1281712,1193128,1293456,30685,14399,15080,29325,67816,34200.16,87182,24794,89940,374,17,80500]
-yoy_2026 = [2500378,2537639,1367351,717692,3044271,1403808,775074,927669,494178,135671,42634,145067,25596,24483,51000,42840,0,0]
-yoy_cash = [-4132059,-658369,-1552155,-2255675,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None]
+# YO Y DATA - built with concat (no long lists)
+yoy = pd.concat([
+    pd.DataFrame({"Region":["Regional Team"]*4, "Period":["Q1","Q2","Q3","Q4"], "2025":[2166506,2773441,2621216,2970993], "2026":[2500378,2537639,1367351,717692], "Cash":[-4132059,-658369,-1552155,-2255675]}),
+    pd.DataFrame({"Region":["CDN"]*2, "Period":["H1","H2"], "2025":[2661466,2869271], "2026":[3044271,1403808], "Cash":[None,None]}),
+    pd.DataFrame({"Region":["Chicago SF"]*4, "Period":["Q1","Q2","Q3","Q4"], "2025":[763087,1281712,1193128,1293456], "2026":[775074,927669,494178,135671], "Cash":[None,None,None,None]}),
+    pd.DataFrame({"Region":["Malls"]*4, "Period":["Q1","Q2","Q3","Q4"], "2025":[30685,14399,15080,29325], "2026":[5299,661,668,639], "Cash":[None,None,None,None]}),
+    pd.DataFrame({"Region":["NYC"]*4, "Period":["Q1","Q2","Q3","Q4"], "2025":[67816,34200.16,87182,24794], "2026":[42634,145067,25596,24483], "Cash":[None,None,None,None]}),
+    pd.DataFrame({"Region":["Boston"]*4, "Period":["Q1","Q2","Q3","Q4"], "2025":[89940,374,17,80500], "2026":[51000,42840,0,0], "Cash":[None,None,None,None]})
+])
 
-yoy = pd.DataFrame({
-    "Region": yoy_region,
-    "Period": yoy_period,
-    "2025": yoy_2025,
-    "2026": yoy_2026,
-    "Cash": yoy_cash
-})
 yoy["YoY"] = (yoy["2026"] / yoy["2025"] * 100).round(2)
 
 tabs_list = st.tabs(["Overview", "Regional", "What-If", "YoY"])
